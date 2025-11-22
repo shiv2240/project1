@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}

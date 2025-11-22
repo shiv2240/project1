@@ -1,0 +1,281 @@
+{
+  "info": {
+    "name": "Multi-AI Orchestrator Backend",
+    "_postman_id": "11111111-2222-3333-4444-555555555555",
+    "description": "Postman collection for Multi-AI Orchestrator backend (Auth, Single-AI chats, Orchestrated Multi-AI chats, provider switching).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "chat_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Root Greet",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/"
+          }
+        },
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/health"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/register"
+          }
+        },
+
+        {
+          "name": "Login (sets authToken)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.token) {",
+                  "    pm.collectionVariables.set(\"authToken\", data.token);",
+                  "    console.log('authToken stored');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "Me (Get current user)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": "{{base_url}}/api/auth/me"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "AI Providers",
+      "item": [
+        {
+          "name": "ChatGPT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"prompt\": \"Explain multi-agent orchestration.\" }"
+            },
+            "url": "{{base_url}}/api/chatgpt"
+          }
+        },
+        {
+          "name": "Gemini",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"prompt\": \"Explain multi-agent orchestration.\" }"
+            },
+            "url": "{{base_url}}/api/gemini"
+          }
+        },
+        {
+          "name": "Perplexity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"prompt\": \"Explain multi-agent orchestration.\" }"
+            },
+            "url": "{{base_url}}/api/perplexity"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Chats",
+      "item": [
+
+        {
+          "name": "Create Conversation (Single AI Mode)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Single Chat - Gemini\",\n  \"provider\": \"gemini\"\n}"
+            },
+            "url": "{{base_url}}/api/chats"
+          }
+        },
+
+        {
+          "name": "Create Conversation (Multi-AI Orchestrated Mode)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Orchestrated Chat\",\n  \"managerProvider\": \"chatgpt\",\n  \"frontendProvider\": \"gemini\",\n  \"backendProvider\": \"perplexity\"\n}"
+            },
+            "url": "{{base_url}}/api/chats"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data._id) {",
+                  "    pm.collectionVariables.set(\"chat_id\", data._id);",
+                  "    console.log('chat_id stored:', data._id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "List Conversations (Shows mode = single/multi)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{base_url}}/api/chats"
+          }
+        },
+
+        {
+          "name": "Get Conversation by ID (Shows mode)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{base_url}}/api/chats/{{chat_id}}"
+          }
+        },
+
+        {
+          "name": "Rename Conversation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"title\": \"Renamed Chat\" }"
+            },
+            "url": "{{base_url}}/api/chats/{{chat_id}}"
+          }
+        },
+
+        {
+          "name": "Update Providers (Switch Multi-AI Providers)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"managerProvider\": \"gemini\",\n  \"frontendProvider\": \"chatgpt\",\n  \"backendProvider\": \"perplexity\"\n}"
+            },
+            "url": "{{base_url}}/api/chats/{{chat_id}}/providers"
+          }
+        },
+
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{base_url}}/api/chats/{{chat_id}}"
+          }
+        },
+
+        {
+          "name": "Send Message in Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"message\": \"Explain the orchestration pipeline.\" }"
+            },
+            "url": "{{base_url}}/api/chats/{{chat_id}}/messages"
+          }
+        }
+      ]
+    }
+  ]
+}
