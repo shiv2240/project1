@@ -140,5 +140,7 @@ export async function login(req, res) {
    ME (Auth Required)
 ======================================================= */
 export async function me(req, res) {
-  return res.json({ user: req.user });
+  return res.json({
+    user: req.user.name
+  });
 }

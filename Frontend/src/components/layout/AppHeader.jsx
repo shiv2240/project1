@@ -15,9 +15,10 @@ export default function AppHeader({ user }) {
         </p>
       </div>
       <div className="flex items-center gap-3 text-xs">
-        <span className="text-white/70">{user?.email}</span>
+        <span className="text-white/70">{user?.name}</span>
         <button
           onClick={logout}
+          
           className="px-3 py-1 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"
         >
           Logout
